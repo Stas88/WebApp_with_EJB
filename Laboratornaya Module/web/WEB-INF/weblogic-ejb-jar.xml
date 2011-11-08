@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<weblogic-ejb-jar>
+    <description>No Description</description>
+    <weblogic-enterprise-bean>
+        <ejb-name>Dept</ejb-name>
+        <entity-descriptor>
+            <entity-cache>
+                <idle-timeout-seconds>30</idle-timeout-seconds>
+            </entity-cache>
+        </entity-descriptor>
+        <transaction-descriptor>
+            <trans-timeout-seconds>300</trans-timeout-seconds>
+        </transaction-descriptor>
+        <reference-descriptor></reference-descriptor>
+        <jndi-name>Model.DeptUpload</jndi-name>
+    </weblogic-enterprise-bean>
+    <weblogic-enterprise-bean>
+        <ejb-name>SalGrade</ejb-name>
+        <entity-descriptor>
+            <entity-cache>
+                <idle-timeout-seconds>30</idle-timeout-seconds>
+            </entity-cache>
+        </entity-descriptor>
+        <transaction-descriptor>
+            <trans-timeout-seconds>300</trans-timeout-seconds>
+        </transaction-descriptor>
+        <reference-descriptor></reference-descriptor>
+        <jndi-name>Model.DeptUpload</jndi-name>
+    </weblogic-enterprise-bean>
+</weblogic-ejb-jar>
+

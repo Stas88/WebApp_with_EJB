@@ -1,0 +1,1 @@
+<jboss-web> <resource-ref> <res-ref-name>jdbc/OracleDS</res-ref-name> <res-type>javax.sql.DataSource</res-type> <res-auth>Container</res-auth> <jndi-name>java:z/OracleDS</jndi-name> </resource-ref> </jboss-web>
