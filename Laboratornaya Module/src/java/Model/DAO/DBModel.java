@@ -13,7 +13,7 @@ import java.util.*;
 import java.io.*;
 import javax.naming.*;
 import org.apache.log4j.*;
-import javax.ejb.*;
+import javax.transaction.*;
 import Model.Util.*;
 import java.rmi.RemoteException;
 
@@ -31,13 +31,15 @@ public class DBModel implements IModel {
     private Object empObject;
     private EmpHome empHome;
     private Properties props;
+    private UserTransaction uTransaction;
+    private Context context;
 
     /**
      * @throws ModelException - Exception that usually can be thrown in model
      */
     public DBModel() throws ModelException {
         try {
-            Context context = new InitialContext();
+            context = new InitialContext();
             props = new Properties();
             props.load(new FileInputStream("Config.properties"));
             deptObject = context.lookup(props.getProperty("JNDI_DEPT"));
@@ -47,6 +49,49 @@ public class DBModel implements IModel {
             empHome = (EmpHome) javax.rmi.PortableRemoteObject.narrow(empObject, EmpHome.class);
             salGradeHome = (SalGradeHome) javax.rmi.PortableRemoteObject.narrow(salGradeObject, SalGradeHome.class);
         } catch (Exception e) {
+            throw new ModelException(e);
+        }
+    }
+    
+    public void startTransaction() throws ModelException {
+        try {
+            uTransaction = (UserTransaction)context.lookup("java:comp/userTransaction");
+            uTransaction.begin();
+        } catch (NamingException e) {
+            logger.error("Transaction did not begined" + e.getMessage());
+            throw new ModelException(e);
+        } catch (NotSupportedException e) {
+            logger.error("Transaction did not begined" + e.getMessage());
+            throw new ModelException(e);
+        }   catch (SystemException e) {
+            logger.error("Transaction did not begined" + e.getMessage());
+            throw new ModelException(e);
+        }
+    }
+    
+    public void commitTransaction() throws ModelException {
+        try {
+            uTransaction.commit();
+        } catch (RollbackException e) {
+            logger.error("Transaction did not commit" + e.getMessage());
+            throw new ModelException(e);
+        } catch(HeuristicMixedException e) {
+            logger.error("Transaction did not commited" + e.getMessage());
+            throw new ModelException(e);
+        } catch(HeuristicRollbackException e) {
+            logger.error("Transaction did not commited" + e.getMessage());
+            throw new ModelException(e);
+        } catch(SystemException e) {
+            logger.error("Transaction did not commited" + e.getMessage());
+            throw new ModelException(e);
+        }
+    }
+    
+    public void rollbackTransaction() throws ModelException {
+        try {
+            uTransaction.rollback();
+        } catch(SystemException e) {
+            logger.error("transaction did not rollbacked" + e.getMessage());
             throw new ModelException(e);
         }
     }
@@ -235,9 +280,12 @@ public class DBModel implements IModel {
     @Override
     public void addEmp(Emp emp) throws ModelException {
         try {
+            startTransaction();
             Validator.validate(emp);
             empHome.create(emp);
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -246,8 +294,11 @@ public class DBModel implements IModel {
     @Override
     public void addDept(Dept dept) throws ModelException {
         try {
+            startTransaction();
             deptHome.create(dept);
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -256,9 +307,12 @@ public class DBModel implements IModel {
     @Override
     public void addSalGrade(SalGrade salGrade) throws ModelException {
         try {
+            startTransaction();
             Validator.validate(salGrade);
             salGradeHome.create(salGrade);
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e);
             throw new ModelException(e);
         } 
@@ -267,9 +321,12 @@ public class DBModel implements IModel {
     @Override
     public void editEmp(Emp emp) throws ModelException {
         try {
+            startTransaction();
             Validator.validate(emp);
             empHome.editEmp(emp);
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -278,8 +335,11 @@ public class DBModel implements IModel {
     @Override
     public void editDept(Dept dept) throws ModelException {
         try {
+            startTransaction();
             deptHome.editDept(dept);
+            commitTransaction();
         } catch (RemoteException e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -288,8 +348,12 @@ public class DBModel implements IModel {
     @Override
     public void editSalGrade(SalGrade salGrade) throws ModelException {
         try {
+            startTransaction();
+            Validator.validate(salGrade);
             salGradeHome.editSalGrade(salGrade);
-        } catch (RemoteException e) {
+            commitTransaction();
+        } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -298,8 +362,11 @@ public class DBModel implements IModel {
     @Override
     public void removeDept(int deptno) throws ModelException {
         try {
+            startTransaction();
             deptHome.findByPrimaryKey(deptno).remove();
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -308,8 +375,11 @@ public class DBModel implements IModel {
     @Override
     public void removeSalGrade(int grade) throws ModelException {
         try {
+            startTransaction();
             salGradeHome.findByPrimaryKey(grade).remove();
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
@@ -318,8 +388,11 @@ public class DBModel implements IModel {
     @Override
     public void removeEmp(int empno) throws ModelException {
         try {
+            startTransaction();
             empHome.findByPrimaryKey(empno).remove();
+            commitTransaction();
         } catch (Exception e) {
+            rollbackTransaction();
             logger.error(e.getMessage());
             throw new ModelException(e);
         }
